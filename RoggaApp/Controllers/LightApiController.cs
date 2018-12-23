@@ -13,9 +13,9 @@ using SmartHome.Hue.BusinessLogic.Contracts;
 
 namespace RoggaApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("smarthome/[controller]")]
     [ApiController]
-    public class SmartHomeController : Controller
+    public class LightApiController : Controller
     {
         private readonly IConfiguration _configuration;
 
@@ -23,7 +23,7 @@ namespace RoggaApp.Controllers
 
         private readonly IApiCaller _caller;
 
-        public SmartHomeController(IConfiguration configuration, ILogger<SmartHomeController> logger, IApiCaller apiCaller)
+        public LightApiController(IConfiguration configuration, ILogger<LightApiController> logger, IApiCaller apiCaller)
         {
             this._configuration = configuration;
             this._logger = logger;
@@ -46,6 +46,7 @@ namespace RoggaApp.Controllers
 
             else
             {
+                this._logger?.LogInformation("Kein Light Device gefunden !!");
                 return this.NotFound();
             }
         }
@@ -65,6 +66,7 @@ namespace RoggaApp.Controllers
 
             else
             {
+                this._logger?.LogInformation($"Kein Light Device mit der ID {id} gefunden !!");
                 return this.NotFound();
             }
         }
@@ -72,19 +74,19 @@ namespace RoggaApp.Controllers
 
 
         [HttpPut]
-        [Route("ChangeState/{id}")]
+        [Route("ChangeState")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<ActionResult> ChangeState(int id,[FromBody] HueLightStatePutDto statePutDto)
+        public async Task<ActionResult> ChangeState([FromBody] HueLightStatePutDto statePutDto)
         {
-            if (statePutDto != null && await this._caller.ChangeLightState(id,statePutDto))
+            if (statePutDto != null && await this._caller.ChangeLightState(statePutDto))
             {
                 return this.Ok();
             }
 
             else
             {
-                return this.BadRequest("Konnte Lampe nicht finden");
+                return this.BadRequest("Lampen Status konnte nicht geändert werden, bitte Logs ansehen");
             }
         }
     }

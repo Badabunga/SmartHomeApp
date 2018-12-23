@@ -13,6 +13,6 @@ namespace SmartHome.Hue.BusinessLogic.Contracts
 
         Task<HueDeviceDto> GetLightInfo(int id);
 
-        Task<bool> ChangeLightState(int id, HueLightStatePutDto statePutDto);
+        Task<bool> ChangeLightState(HueLightStatePutDto statePutDto);
     }
 }

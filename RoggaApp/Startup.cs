@@ -13,6 +13,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SmartHome.Hue.BusinessLogic;
 using SmartHome.Hue.BusinessLogic.Contracts;
+using AutoMapper;
+using SmartHome.Hue.BusinessLogic.Automapper;
 
 namespace RoggaApp
 {
@@ -31,7 +33,13 @@ namespace RoggaApp
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddScoped<IApiCaller, HueApiCaller>();
 
-            //ServicePointManager.ServerCertificateValidationCallback += this.CheckSslCertificate;
+            var config = new MapperConfiguration(c =>
+           {
+               c.AddProfile(new LightApiProfile());
+           });
+
+
+            services.AddSingleton(config.CreateMapper());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

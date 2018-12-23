@@ -8,6 +8,9 @@
 *.user
 *.userosscache
 *.sln.docstates
+CertPassword.cs
+httpscert.pfx
+
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

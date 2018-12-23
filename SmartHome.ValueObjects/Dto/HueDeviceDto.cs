@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SmartHome.ValueObjects.Enums;
+using System;
 
 namespace SmartHome.ValueObjects.Dto
 {

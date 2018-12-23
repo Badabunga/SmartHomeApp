@@ -6,8 +6,9 @@ namespace SmartHome.ValueObjects.Enums
 {
     public enum EHueDeviceType
     {
+        Unkown,
         Extended_Color_Light,
-        Tempreature_Light,
+        Temperature_Light,
         Color_Light,
         Dimmable_Light,
     }

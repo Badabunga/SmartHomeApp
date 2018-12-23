@@ -1,31 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace SmartHome.ValueObjects.Dto.Put
+namespace SmartHome.ValueObjects.Dto.Put.LightState
 {
-    public class HueLightStatePutDto
+    public class ExtendedColorLightStatePutDto
     {
-        [Required]
-        public int Id { get; set; }
-
-        [Required]
         public bool On { get; set; }
 
         /// <summary>
         /// Saturation
         /// </summary>
-        [Required]
         public byte Sat { get; set; }
 
         /// <summary>
         /// Brightness
         /// </summary>
-        [Required]
-        public int Bri{ get; set; }
+        public int Bri { get; set; }
 
-        [Required]
         public int Hue { get; set; }
     }
 }

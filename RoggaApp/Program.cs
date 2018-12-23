@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RoggaApp.Configs;
+using RoggaApp.Security;
 
 namespace RoggaApp
 {
@@ -32,7 +33,7 @@ namespace RoggaApp
                     options.Listen(IPAddress.Loopback, 5000);
                     options.Listen(IPAddress.Loopback, 5001, listenoptions =>
                      {
-                         listenoptions.UseHttps("httpscert.pfx", "Tanneben59!");
+                         listenoptions.UseHttps("httpscert.pfx", CertPassword.Password);
                      });
                 })
                 .UseStartup<Startup>()

@@ -5,15 +5,14 @@ using System.Collections.Generic;
 using Flurl;
 using Flurl.Http;
 using System.Threading.Tasks;
-using System.Net;
 using System.Net.Http;
 using SmartHome.ValueObjects.Dto.Put;
-using Newtonsoft.Json;
-using System.Net.Http.Headers;
 using SmartHome.Hue.BusinessLogic.Extensions;
 using Microsoft.Extensions.Logging;
-using static SmartHome.Hue.BusinessLogic.Helper.HueApiResponseValidator;
 using SmartHome.Hue.BusinessLogic.Contracts;
+using SmartHome.Hue.BusinessLogic.Handler;
+using AutoMapper;
+using static SmartHome.Hue.BusinessLogic.Helper.CertificateHelper;
 
 namespace SmartHome.Hue.BusinessLogic
 {
@@ -21,34 +20,34 @@ namespace SmartHome.Hue.BusinessLogic
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
+        private readonly IMapper _mapper;
+        private readonly ApiResponseHandler _responseHandler;
 
-        public HueApiCaller(IConfiguration configuration, ILogger<HueApiCaller> logger)
+        public HueApiCaller(IConfiguration configuration, ILogger<HueApiCaller> logger, IMapper mapper)
         {
             this._configuration = configuration;
             this._logger = logger;
+            this._mapper = mapper;
+            this._responseHandler = new ApiResponseHandler(this._logger);
         }
 
         public async Task<IDictionary<int, HueDeviceDto>> GetGeneralLightInfo()
         {
 
-            return await Task.Run<IDictionary<int, HueDeviceDto>>(async () =>
+            return await Task.Run(async () =>
             {
                 try
                 {
                     using (var handler = new HttpClientHandler())
                     using (var client = new HttpClient(handler))
                     {
-                        handler.ServerCertificateCustomValidationCallback = this.CheckSslCertificate;
+                        handler.ServerCertificateCustomValidationCallback = CheckSslCertificate;
 
                         var url = this._configuration["BridgeIP"]
                        .AppendPathSegments("api", this._configuration["DefaultApiUser"], "lights")
                        .ToUri();
 
-                        var response = await client.GetAsync(url).ReceiveString();
-
-
-                        return JsonConvert.DeserializeObject
-                        <IDictionary<int, HueDeviceDto>>(response);
+                        return await client.ReadAsJsonAsync<IDictionary<int, HueDeviceDto>>(url);
                     }
                 }
 
@@ -63,24 +62,20 @@ namespace SmartHome.Hue.BusinessLogic
 
         public Task<HueDeviceDto> GetLightInfo(int id)
         {
-            return Task.Run<HueDeviceDto>(async () =>
+            return Task.Run(async () =>
             {
                 try
                 {
                     using (var handler = new HttpClientHandler())
                     using (var client = new HttpClient(handler))
                     {
-                        handler.ServerCertificateCustomValidationCallback = this.CheckSslCertificate;
+                        handler.ServerCertificateCustomValidationCallback = CheckSslCertificate;
 
                         var url = this._configuration["BridgeIP"]
                        .AppendPathSegments("api", this._configuration["DefaultApiUser"], "lights",id)
                        .ToUri();
 
-                        var response = await client.GetAsync(url).ReceiveString();
-
-
-                        return JsonConvert.DeserializeObject
-                        <HueDeviceDto>(response);
+                        return await client.ReadAsJsonAsync<HueDeviceDto>(url);
                     }
                 }
 
@@ -92,7 +87,7 @@ namespace SmartHome.Hue.BusinessLogic
             });
         }
 
-        public Task<bool> ChangeLightState(int id,HueLightStatePutDto statePutDto)
+        public Task<bool> ChangeLightState(HueLightStatePutDto statePutDto)
         {
             bool result = false;
             return Task.Run<bool>(async () =>
@@ -102,41 +97,40 @@ namespace SmartHome.Hue.BusinessLogic
                     using (var handler = new HttpClientHandler())
                     using (var client = new HttpClient(handler))
                     {
-                        handler.ServerCertificateCustomValidationCallback = this.CheckSslCertificate;
+                        handler.ServerCertificateCustomValidationCallback = CheckSslCertificate;
 
                         var url = this._configuration["BridgeIP"]
-                       .AppendPathSegments("api", this._configuration["DefaultApiUser"], "lights",id,"state")
+                       .AppendPathSegments("api", this._configuration["DefaultApiUser"], "lights",statePutDto.Id,"state")
                        .ToUri();
 
-                        var getCurrentState = await this.GetLightInfo(id);
+                        var currentState = await this.GetLightInfo(statePutDto.Id) ?? throw new Exception("Lampe mit der ID {statePutDto.Id} konnte nicht gefunden werden !! Ist diese Registriert ? ");
 
+                        var stateHandler = new LightStateHandler(this._logger,this._mapper);
 
-                        if (getCurrentState.State.On != statePutDto.On)
+                        var content = stateHandler.GetSwitchStateContent(currentState, statePutDto);
+
+                        if(content.IsNecessary.HasValue && content.IsNecessary.Value)
                         {
-                            var response = await client.PostAsJsonAsync(url, statePutDto);
+                            var response = await client.PostAsJsonAsync(url, content.content);
 
-
-                            if (!result && TryParseErrorResponseMessage(response, out var errorResponseDto))
-                            {
-                                errorResponseDto.ForEach(x => this._logger?.LogError("Licht Status konnte nicht geändert werden: " +
-                                    $"Type: {x.Error.Type}, {Environment.NewLine} Adress: {x.Error.Address}, " +
-                                    $"{Environment.NewLine} Description {x.Error.Description}", x.Error));
-
-
-                                result = false;
-                            }
-
-                            else
-                            {
-                                result = true;
-                            }
+                            return this._responseHandler.ResponseContainsErrors(response);
                         }
 
                         else
                         {
-                            this._logger.LogInformation("Lampe hat schon den Status der geändert werden sollte");
+                            if (content.IsNecessary.HasValue)
+                            {
+                                this._logger?.LogInformation("Lampe hat einen ungültigen Status und kann nicht geändert werden");
 
-                            result = true;
+                                result = true;
+                            }
+
+                            else
+                            {
+                                this._logger?.LogCritical("Serializierung hat nicht funktioniert bitte, Log ansehen");
+         
+                                result = false;
+                            }
                         }
 
                         return result;
@@ -145,7 +139,7 @@ namespace SmartHome.Hue.BusinessLogic
 
                 catch (Exception ex)
                 {
-                    this._logger.LogError(ex, "Generlle Exception während ChangeLightState");
+                    this._logger.LogError(ex, "Generelle Exception während ChangeLightState");
                     return false;
                 }
             });
@@ -153,23 +147,7 @@ namespace SmartHome.Hue.BusinessLogic
 
         
 
-        private bool CheckSslCertificate(object sender, System.Security.Cryptography.X509Certificates.X509Certificate certificate,
-                      System.Security.Cryptography.X509Certificates.X509Chain chain,
-                      System.Net.Security.SslPolicyErrors sslPolicyErrors)
-        {
-            var startTime = DateTime.Parse(certificate.GetEffectiveDateString());
-            var endTime = DateTime.Parse(certificate.GetExpirationDateString());
-            if (startTime <= DateTime.Now && endTime >= DateTime.Now && certificate.GetIssuerName().Contains("Philips Hue"))
-            {
-                return true;
-
-            }
-
-            else
-            {
-                return false;
-            }
-        }
+     
 
        
     }
