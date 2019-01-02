@@ -11,7 +11,7 @@ namespace RoggaApp.Configs
 {
     internal class EFConfigurationProvider : ConfigurationProvider
     {
-        private Action<DbContextOptionsBuilder> _optionsAction;
+        private Action<DbContextOptionsBuilder> _optionsAction; 
 
         public EFConfigurationProvider(Action<DbContextOptionsBuilder> optionsAction)
         {

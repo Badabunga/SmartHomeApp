@@ -31,11 +31,13 @@ namespace RoggaApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddScoped<IApiCaller, HueApiCaller>();
+            services.AddScoped<ILightApi, HueLightApiCaller>();
+            services.AddScoped<IGroupApi, HueGroupApiCaller>();
 
             var config = new MapperConfiguration(c =>
            {
                c.AddProfile(new LightApiProfile());
+               c.AddProfile(new GroupApiProfile());
            });
 
 

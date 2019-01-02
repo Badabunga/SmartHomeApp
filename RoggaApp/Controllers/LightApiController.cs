@@ -21,9 +21,9 @@ namespace RoggaApp.Controllers
 
         private readonly ILogger _logger;
 
-        private readonly IApiCaller _caller;
+        private readonly ILightApi _caller;
 
-        public LightApiController(IConfiguration configuration, ILogger<LightApiController> logger, IApiCaller apiCaller)
+        public LightApiController(IConfiguration configuration, ILogger<LightApiController> logger, ILightApi apiCaller)
         {
             this._configuration = configuration;
             this._logger = logger;
@@ -37,7 +37,7 @@ namespace RoggaApp.Controllers
         public ActionResult<IDictionary<int, HueDeviceDto>> Get()
         {
 
-            var lightDevices = this._caller.GetGeneralLightInfo().Result;
+            var lightDevices = this._caller.GetGeneralInfo().Result;
 
             if (lightDevices.Any())
             {
@@ -57,7 +57,7 @@ namespace RoggaApp.Controllers
         [ProducesResponseType(404)]
         public ActionResult<HueDeviceDto> Get(int id)
         {
-            var lightDevice = this._caller.GetLightInfo(id).Result;
+            var lightDevice = this._caller.GetInfo(id).Result;
 
             if(lightDevice != null)
             {

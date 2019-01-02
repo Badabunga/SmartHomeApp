@@ -9,10 +9,8 @@ namespace SmartHome.Hue.BusinessLogic.Contracts
 {
     public interface IApiCaller
     {
-        Task<IDictionary<int, HueDeviceDto>> GetGeneralLightInfo();
+        Task<IDictionary<int, HueDeviceDto>> GetGeneralInfo();
 
-        Task<HueDeviceDto> GetLightInfo(int id);
-
-        Task<bool> ChangeLightState(HueLightStatePutDto statePutDto);
+        Task<HueDeviceDto> GetInfo(int id);
     }
 }

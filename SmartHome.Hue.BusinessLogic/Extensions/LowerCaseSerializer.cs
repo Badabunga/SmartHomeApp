@@ -10,16 +10,24 @@ namespace SmartHome.Hue.BusinessLogic.Extensions
     {
         private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
         {
-            ContractResolver = new LowercaseContractResolver()
+            ContractResolver = new LowerCaseContractResolver()
         };
 
-        public static string SerializeObject(object o)
+        private static readonly JsonSerializerSettings SettingsWithoutNullProperties = new JsonSerializerSettings
         {
-            return JsonConvert.SerializeObject(o, Formatting.None, Settings);
-        }
+            ContractResolver = new LowerCaseContractResolver(),
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        public static string SerializeObject(object o) =>
+            JsonConvert.SerializeObject(o, Formatting.None, Settings);
+
+        public static string SerializeObjectWithoutNullProperties(object o) =>
+            JsonConvert.SerializeObject(o, Formatting.None, SettingsWithoutNullProperties);
+
     }
 
-    public class LowercaseContractResolver : DefaultContractResolver
+    public class LowerCaseContractResolver : DefaultContractResolver
     {
         protected override string ResolvePropertyName(string propertyName)
         {

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SmartHome.Domain\SmartHome.Domain.csproj" />
     <ProjectReference Include="..\SmartHome.Hue.BusinessLogic\SmartHome.Hue.BusinessLogic.csproj" />
     <ProjectReference Include="..\SmartHome.ValueObjects\SmartHome.ValueObjects.csproj" />
   </ItemGroup>
