@@ -51,7 +51,7 @@ namespace SmartHome.Hue.BusinessLogic
                         var response = await this._config["BridgeIP"]
                        .AppendPathSegments("api", this._config["DefaultApiUser"], "groups", switchPutDto.Id, "action")
                        .ToUri()
-                       .PostAsJsonAsync(content.content);
+                       .PutAsJsonAsync(content.content);
 
                         return this._responseHandler.ResponseContainsErrors(response);
                     }
@@ -97,7 +97,7 @@ namespace SmartHome.Hue.BusinessLogic
                     {
                         var response = await this._config["BridgeIP"]
                        .AppendPathSegments("api", this._config["DefaultApiUser"], "groups", hueGroupState.Id, "action")
-                       .ToUri().PostAsJsonAsync(content.content);
+                       .ToUri().PutAsJsonAsync(content.content);
 
                         return this._responseHandler.ResponseContainsErrors(response);
                     }

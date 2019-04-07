@@ -88,7 +88,7 @@ namespace SmartHome.Hue.BusinessLogic
                         var response = await this._configuration["BridgeIP"]
                                                  .AppendPathSegments("api", this._configuration["DefaultApiUser"], "lights", statePutDto.Id, "state")
                                                  .ToUri()
-                                                 .PostAsJsonAsync(content.content);
+                                                 .PutAsJsonAsync(content.content);
 
                         return this._responseHandler.ResponseContainsErrors(response);
                     }

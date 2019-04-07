@@ -9,15 +9,15 @@ namespace SmartHome.Hue.BusinessLogic.Extensions
 {
     public static class HttpClientExtensions
     {
-        public static Task<HttpResponseMessage> PostAsJsonAsync<T>(this Uri url, T data) where T : class
+        public static Task<HttpResponseMessage> PutAsJsonAsync<T>(this Uri url, T data) where T : class
         {
             var dataString = LowerCaseSerializer.SerializeObject(data);
 
-            return PostAsJsonAsync(url, dataString);
+            return PutAsJsonAsync(url, dataString);
         }
 
 
-        public static Task<HttpResponseMessage> PostAsJsonAsync(this Uri url, string data)
+        public static async Task<HttpResponseMessage> PutAsJsonAsync(this Uri url, string data)
         {
             using (var handler = new HttpClientHandler())
             using (var client = new HttpClient(handler))
@@ -28,7 +28,7 @@ namespace SmartHome.Hue.BusinessLogic.Extensions
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
 
-                return client.PutAsync(url, content);
+                return await client.PutAsync(url, content);
             }
         }
 
